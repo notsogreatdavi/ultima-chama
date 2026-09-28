@@ -2,7 +2,7 @@
 
 Jogo survival top-down 2D feito em Unity para o Desafio Individual Unity 3 (Jogos Digitais).
 
-**Jogar no navegador (WebGL):** LINK_WEBGL
+**Jogar no navegador (WebGL):** https://notsogreatdavi.github.io/ultima-chama/
 
 ## Experiência
 
