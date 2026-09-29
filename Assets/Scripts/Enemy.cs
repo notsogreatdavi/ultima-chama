@@ -2,8 +2,8 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Tilemaps;
 
-// Base das sombras. Subclasses definem para onde querem ir (Desired);
-// a base cuida de desviar de paredes, dano, morte e drops.
+// Base dos Breus. Subclasses definem para onde querem ir (Desired) e sua aparência;
+// a base cuida de desviar de paredes, dano, dissolver ao morrer e drops.
 public abstract class Enemy : MonoBehaviour
 {
     public static readonly List<Enemy> All = new List<Enemy>();
@@ -14,36 +14,46 @@ public abstract class Enemy : MonoBehaviour
 
     protected PlayerController player;
     protected Rigidbody2D rb;
+    protected SpriteAnimator anim;
+    protected float boost = 1f;
     SpriteRenderer sr;
     Vector2 knockback;
+    float hurtTimer;
     bool dead;
 
     static readonly RaycastHit2D[] hits = new RaycastHit2D[8];
     static readonly float[] steerAngles = { 0f, 35f, -35f, 70f, -70f, 110f, -110f };
 
-    protected abstract Color BodyColor { get; }
-    protected abstract string SpriteKey { get; }
+    // Prefixo dos clipes em Resources/Sprites/breus (comum, cacadora, brutamontes).
+    protected abstract string Variant { get; }
+    protected virtual float BodyRadius => 0.5f;
+    protected virtual Vector2 BodyOffset => new Vector2(0f, -0.15f);
+    // Enquanto true, a base não volta para a animação de flutuar.
+    protected virtual bool Busy => false;
 
-    // Para onde a sombra quer ir (posição no mundo).
+    // Para onde o Breu quer ir (posição no mundo).
     protected abstract Vector2 Desired();
+
+    public Vector3 Body => transform.position + (Vector3)BodyOffset;
 
     public static T Create<T>(Vector3 pos, PlayerController target, float speed, int hp) where T : Enemy
     {
         var go = Bootstrap.NewObject(typeof(T).Name);
         go.transform.position = pos;
 
-        var sr = go.AddComponent<SpriteRenderer>();
-        sr.sortingOrder = 1;
-        go.AddComponent<SpriteAnimator>().fps = 7f;
+        go.AddComponent<SpriteRenderer>();
+        go.AddComponent<SpriteAnimator>();
 
         var rb = go.AddComponent<Rigidbody2D>();
         rb.gravityScale = 0f;
         rb.freezeRotation = true;
         rb.mass = 0.5f;
 
-        go.AddComponent<CircleCollider2D>().radius = 0.4f;
-
+        var col = go.AddComponent<CircleCollider2D>();
         var e = go.AddComponent<T>();
+        col.radius = e.BodyRadius;
+        col.offset = e.BodyOffset;
+        go.AddComponent<YSort>().offset = e.BodyOffset.y;
         e.player = target;
         e.speed = speed;
         e.hp = hp;
@@ -54,31 +64,39 @@ public abstract class Enemy : MonoBehaviour
     {
         rb = GetComponent<Rigidbody2D>();
         sr = GetComponent<SpriteRenderer>();
+        anim = GetComponent<SpriteAnimator>();
     }
 
     protected virtual void Start()
     {
-        GetComponent<SpriteAnimator>().Play(SpriteFactory.Shade(SpriteKey, BodyColor, new Color(1f, 0.9f, 0.3f)));
-        transform.localScale = Vector3.one * (hp > 1 ? 1.3f : 1f);
+        anim.Play("breus/" + Variant + "_float");
     }
 
     void OnEnable() { All.Add(this); }
     void OnDisable() { All.Remove(this); }
 
+    protected virtual void Update()
+    {
+        if (dead) return;
+        hurtTimer -= Time.deltaTime;
+        if (hurtTimer <= 0f && !Busy) anim.Play("breus/" + Variant + "_float");
+        if (player != null) sr.flipX = player.transform.position.x < transform.position.x;
+    }
+
     void FixedUpdate()
     {
         var gm = GameManager.Instance;
-        if (player == null || gm == null || gm.State != GameState.Playing || !player.Alive)
+        if (dead || player == null || gm == null || gm.State != GameState.Playing || !player.Alive)
         {
             rb.SetVelocity(Vector2.zero);
             return;
         }
 
-        Vector2 pos = rb.position;
+        Vector2 pos = rb.position + BodyOffset;
         Vector2 dir = Desired() - pos;
         if (dir.sqrMagnitude > 0.0001f) dir = Steer(pos, dir.normalized);
 
-        rb.SetVelocity(dir * speed + knockback);
+        rb.SetVelocity(dir * speed * boost + knockback);
         knockback = Vector2.MoveTowards(knockback, Vector2.zero, 30f * Time.fixedDeltaTime);
     }
 
@@ -96,7 +114,7 @@ public abstract class Enemy : MonoBehaviour
 
     bool WallAhead(Vector2 pos, Vector2 dir, ContactFilter2D filter)
     {
-        int count = Physics2D.CircleCast(pos, 0.35f, dir, filter, hits, 1.2f);
+        int count = Physics2D.CircleCast(pos, BodyRadius * 0.8f, dir, filter, hits, 1.2f);
         for (int i = 0; i < count; i++)
         {
             if (hits[i].collider is TilemapCollider2D) return true;
@@ -113,15 +131,10 @@ public abstract class Enemy : MonoBehaviour
     {
         if (dead) return;
         hp -= damage;
-        sr.color = new Color(1f, 0.5f, 0.5f);
-        Invoke(nameof(ResetColor), 0.06f);
-        if (player != null) Knockback(((Vector2)(transform.position - player.transform.position)).normalized * 5f);
+        hurtTimer = 0.17f;
+        anim.Play("breus/" + Variant + "_hurt", false, true);
+        if (player != null) Knockback(((Vector2)(Body - player.Body)).normalized * 5f);
         if (hp <= 0) Die();
-    }
-
-    void ResetColor()
-    {
-        sr.color = Color.white;
     }
 
     public void Die()
@@ -130,14 +143,19 @@ public abstract class Enemy : MonoBehaviour
         dead = true;
         All.Remove(this);
 
-        Fx.Burst(transform.position, BodyColor + new Color(0.2f, 0.2f, 0.2f, 0f), 1.8f);
+        GetComponent<Collider2D>().enabled = false;
+        rb.SetVelocity(Vector2.zero);
+        rb.simulated = false;
+
+        string key = "breus/" + Variant + "_dissolve";
+        anim.Play(key, false, true);
         CameraFollow.Instance?.Shake(0.08f);
         GameManager.Instance.OnEnemyKilled(scoreValue);
 
-        // Recompensa: gema sempre, coração às vezes.
-        Pickup.Spawn(Pickup.Kind.Gem, transform.position);
-        if (Random.value < 0.07f) Pickup.Spawn(Pickup.Kind.Heart, transform.position + new Vector3(0.4f, 0.3f, 0f));
+        // Recompensa: Lumen sempre, Vela às vezes.
+        Pickup.Spawn(Pickup.Kind.Lumen, Body);
+        if (Random.value < 0.07f) Pickup.Spawn(Pickup.Kind.Vela, Body + new Vector3(0.6f, 0.3f, 0f));
 
-        Destroy(gameObject);
+        Destroy(gameObject, SpriteFactory.Duration(key) + 0.05f);
     }
 }

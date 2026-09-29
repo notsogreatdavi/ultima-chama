@@ -1,8 +1,8 @@
 using System.Collections;
 using UnityEngine;
 
-// Ondas de sombras com dificuldade crescente: mais inimigos, mais rápidos,
-// intervalo menor e mais caçadoras a cada onda. Inimigos mortos voltam na próxima onda.
+// Ondas de Breus com dificuldade crescente: mais Breus, mais rápidos,
+// intervalo menor, mais Caçadoras e Brutamontes. Breus mortos voltam na próxima onda.
 public class WaveSpawner : MonoBehaviour
 {
     public ArenaBuilder arena;
@@ -48,8 +48,8 @@ public class WaveSpawner : MonoBehaviour
     {
         pending++;
         Vector3 pos = PickSpawnPoint();
-        Fx.Spawn(SpriteFactory.Ring(), pos, new Color(0.8f, 0.2f, 0.9f, 0.9f), 1.2f, 0.3f, 0.7f, 0);
-        yield return new WaitForSeconds(0.7f);
+        Fx.Play("itens/surgimento", pos, 1f, true, -70);
+        yield return new WaitForSeconds(SpriteFactory.Duration("itens/surgimento"));
         pending--;
         if (!player.Alive) yield break;
 
@@ -57,10 +57,12 @@ public class WaveSpawner : MonoBehaviour
         float flankerChance = Mathf.Min(0.55f, (Wave - 1) * 0.1f);
         bool tank = Wave >= 4 && Random.value < 0.15f;
 
-        if (Random.value < flankerChance)
+        if (tank)
+            Enemy.Create<BruteEnemy>(pos, player, speed * 0.6f, 4);
+        else if (Random.value < flankerChance)
             Enemy.Create<FlankerEnemy>(pos, player, speed * 1.1f, 1);
         else
-            Enemy.Create<ChaserEnemy>(pos, player, tank ? speed * 0.7f : speed, tank ? 4 : 1);
+            Enemy.Create<ChaserEnemy>(pos, player, speed, 1);
     }
 
     Vector3 PickSpawnPoint()
