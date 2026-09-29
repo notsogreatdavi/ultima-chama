@@ -45,7 +45,7 @@ def all_groups():
 
 def export_unity(out):
     out = Path(out)
-    meta = {}
+    meta = []
     for group, anims in all_groups().items():
         for name, frames in anims.items():
             d = out / group / name
@@ -54,13 +54,14 @@ def export_unity(out):
                 old.unlink()
             for i, f in enumerate(frames):
                 f.image().save(d / f'{i:02d}.png')
-            meta[f'{group}/{name}'] = {'frames': len(frames), 'fps': fps_for(name), 'size': frames[0].w}
+            meta.append({'key': f'{group}/{name}', 'frames': len(frames), 'fps': fps_for(name)})
     for sub, pieces in (('tiles', tiles.build()), ('ui', ui.build())):
         d = out / sub
         d.mkdir(parents=True, exist_ok=True)
         for name, c in pieces.items():
             c.image().save(d / f'{name}.png')
-    (out / 'meta.json').write_text(json.dumps(meta, indent=1))
+    # formato de lista para o JsonUtility do Unity
+    (out / 'meta.json').write_text(json.dumps({'anims': meta}, indent=1))
     print('unity:', len(meta), 'animações em', out)
 
 

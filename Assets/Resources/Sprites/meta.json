@@ -1,0 +1,244 @@
+{
+ "anims": [
+  {
+   "key": "pavio/idle_normal",
+   "frames": 6,
+   "fps": 8
+  },
+  {
+   "key": "pavio/run_normal",
+   "frames": 8,
+   "fps": 12
+  },
+  {
+   "key": "pavio/idle_piscando",
+   "frames": 6,
+   "fps": 8
+  },
+  {
+   "key": "pavio/run_piscando",
+   "frames": 8,
+   "fps": 12
+  },
+  {
+   "key": "pavio/idle_feliz",
+   "frames": 6,
+   "fps": 8
+  },
+  {
+   "key": "pavio/run_feliz",
+   "frames": 8,
+   "fps": 12
+  },
+  {
+   "key": "pavio/idle_medo",
+   "frames": 6,
+   "fps": 8
+  },
+  {
+   "key": "pavio/run_medo",
+   "frames": 8,
+   "fps": 12
+  },
+  {
+   "key": "pavio/idle_bravo",
+   "frames": 6,
+   "fps": 8
+  },
+  {
+   "key": "pavio/run_bravo",
+   "frames": 8,
+   "fps": 12
+  },
+  {
+   "key": "pavio/idle_dano",
+   "frames": 6,
+   "fps": 8
+  },
+  {
+   "key": "pavio/run_dano",
+   "frames": 8,
+   "fps": 12
+  },
+  {
+   "key": "pavio/shoot",
+   "frames": 4,
+   "fps": 14
+  },
+  {
+   "key": "pavio/dash",
+   "frames": 5,
+   "fps": 20
+  },
+  {
+   "key": "pavio/hurt",
+   "frames": 3,
+   "fps": 12
+  },
+  {
+   "key": "pavio/death",
+   "frames": 10,
+   "fps": 10
+  },
+  {
+   "key": "pavio/azul_idle_normal",
+   "frames": 6,
+   "fps": 8
+  },
+  {
+   "key": "pavio/azul_run_normal",
+   "frames": 8,
+   "fps": 12
+  },
+  {
+   "key": "pavio/azul_idle_piscando",
+   "frames": 6,
+   "fps": 8
+  },
+  {
+   "key": "pavio/azul_run_piscando",
+   "frames": 8,
+   "fps": 12
+  },
+  {
+   "key": "pavio/azul_idle_feliz",
+   "frames": 6,
+   "fps": 8
+  },
+  {
+   "key": "pavio/azul_run_feliz",
+   "frames": 8,
+   "fps": 12
+  },
+  {
+   "key": "pavio/azul_idle_medo",
+   "frames": 6,
+   "fps": 8
+  },
+  {
+   "key": "pavio/azul_run_medo",
+   "frames": 8,
+   "fps": 12
+  },
+  {
+   "key": "pavio/azul_idle_bravo",
+   "frames": 6,
+   "fps": 8
+  },
+  {
+   "key": "pavio/azul_run_bravo",
+   "frames": 8,
+   "fps": 12
+  },
+  {
+   "key": "pavio/azul_idle_dano",
+   "frames": 6,
+   "fps": 8
+  },
+  {
+   "key": "pavio/azul_run_dano",
+   "frames": 8,
+   "fps": 12
+  },
+  {
+   "key": "pavio/azul_shoot",
+   "frames": 4,
+   "fps": 14
+  },
+  {
+   "key": "pavio/azul_dash",
+   "frames": 5,
+   "fps": 20
+  },
+  {
+   "key": "pavio/azul_hurt",
+   "frames": 3,
+   "fps": 12
+  },
+  {
+   "key": "breus/comum_float",
+   "frames": 6,
+   "fps": 8
+  },
+  {
+   "key": "breus/comum_hurt",
+   "frames": 2,
+   "fps": 12
+  },
+  {
+   "key": "breus/comum_dissolve",
+   "frames": 8,
+   "fps": 12
+  },
+  {
+   "key": "breus/cacadora_float",
+   "frames": 6,
+   "fps": 8
+  },
+  {
+   "key": "breus/cacadora_hurt",
+   "frames": 2,
+   "fps": 12
+  },
+  {
+   "key": "breus/cacadora_dissolve",
+   "frames": 8,
+   "fps": 12
+  },
+  {
+   "key": "breus/brutamontes_float",
+   "frames": 6,
+   "fps": 8
+  },
+  {
+   "key": "breus/brutamontes_hurt",
+   "frames": 2,
+   "fps": 12
+  },
+  {
+   "key": "breus/brutamontes_dissolve",
+   "frames": 10,
+   "fps": 12
+  },
+  {
+   "key": "breus/cacadora_lunge",
+   "frames": 4,
+   "fps": 12
+  },
+  {
+   "key": "itens/lumen",
+   "frames": 6,
+   "fps": 8
+  },
+  {
+   "key": "itens/vela",
+   "frames": 4,
+   "fps": 8
+  },
+  {
+   "key": "itens/faisca",
+   "frames": 4,
+   "fps": 16
+  },
+  {
+   "key": "itens/labareda",
+   "frames": 9,
+   "fps": 18
+  },
+  {
+   "key": "itens/impacto",
+   "frames": 5,
+   "fps": 18
+  },
+  {
+   "key": "itens/surgimento",
+   "frames": 6,
+   "fps": 10
+  },
+  {
+   "key": "itens/fumaca",
+   "frames": 5,
+   "fps": 10
+  }
+ ]
+}
