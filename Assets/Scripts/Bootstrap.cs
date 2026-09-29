@@ -1,8 +1,12 @@
 using UnityEngine;
+using UnityEngine.Rendering.Universal;
 
 // Monta o jogo inteiro por código ao carregar a cena. A cena pode estar vazia.
 public static class Bootstrap
 {
+    // Plano B: false volta para a escuridão por sprite (sem luz 2D).
+    public const bool UseLights = true;
+
     public static Transform Root { get; private set; }
 
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
@@ -42,9 +46,9 @@ public static class Bootstrap
             cam = camGo.AddComponent<Camera>();
         }
         cam.orthographic = true;
-        cam.orthographicSize = 7f;
         cam.clearFlags = CameraClearFlags.SolidColor;
-        cam.backgroundColor = Color.black;
+        cam.backgroundColor = new Color(0.055f, 0.043f, 0.086f);
+        SetupPixelPerfect(cam);
 
         var arena = ArenaBuilder.Build();
         var player = PlayerController.Create(arena.PlayerSpawn);
@@ -54,7 +58,15 @@ public static class Bootstrap
         if (follow == null) follow = cam.gameObject.AddComponent<CameraFollow>();
         follow.target = player;
 
-        Darkness.Create(player);
+        if (UseLights)
+        {
+            LightRig.SetupGlobal(Root);
+            LightRig.Create(player);
+        }
+        else
+        {
+            Darkness.Create(player);
+        }
 
         var gmGo = NewObject("GameManager");
         var spawner = gmGo.AddComponent<WaveSpawner>();
@@ -62,5 +74,17 @@ public static class Bootstrap
         spawner.player = player;
         var gm = gmGo.AddComponent<GameManager>();
         gm.Setup(player, spawner, startInMenu);
+    }
+
+    // Tela nativa 320x180 com 16 px por unidade, ampliada em múltiplos inteiros.
+    static void SetupPixelPerfect(Camera cam)
+    {
+        var ppc = cam.GetComponent<PixelPerfectCamera>();
+        if (ppc == null) ppc = cam.gameObject.AddComponent<PixelPerfectCamera>();
+        ppc.assetsPPU = 16;
+        ppc.refResolutionX = 320;
+        ppc.refResolutionY = 180;
+        ppc.gridSnapping = PixelPerfectCamera.GridSnapping.UpscaleRenderTexture;
+        ppc.cropFrame = PixelPerfectCamera.CropFrame.None;
     }
 }
