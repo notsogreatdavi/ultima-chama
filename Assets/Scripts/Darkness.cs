@@ -1,7 +1,7 @@
 using UnityEngine;
 
-// Escuridão ao redor do jogador. O raio de luz encolhe conforme a vida cai:
-// a chama é literalmente a vida do jogador.
+// Plano B de iluminação (sem luz 2D): escuridão em faixas ao redor de Pavio.
+// O raio de luz encolhe conforme a vida cai.
 public class Darkness : MonoBehaviour
 {
     PlayerController player;
@@ -11,14 +11,14 @@ public class Darkness : MonoBehaviour
         var go = Bootstrap.NewObject("Darkness");
         var sr = go.AddComponent<SpriteRenderer>();
         sr.sprite = SpriteFactory.Darkness();
-        sr.sortingOrder = 50;
+        sr.sortingOrder = Fx.Order - 10;
         go.AddComponent<Darkness>().player = player;
     }
 
     void LateUpdate()
     {
         if (player == null) return;
-        transform.position = player.transform.position;
+        transform.position = player.Body;
 
         float lifeRatio = player.Alive ? (float)player.Hp / PlayerController.MaxHp : 0.35f;
         float flicker = 1f + Mathf.Sin(Time.time * 11f) * 0.012f + Mathf.Sin(Time.time * 23f) * 0.008f;

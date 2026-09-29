@@ -1,7 +1,7 @@
 using UnityEngine;
 using UnityEngine.Tilemaps;
 
-// Faísca disparada pelo jogador. Some ao bater em parede ou sombra.
+// Faísca disparada por Pavio. Some ao bater em parede ou Breu.
 public class Projectile : MonoBehaviour
 {
     const float Speed = 15f;
@@ -12,14 +12,13 @@ public class Projectile : MonoBehaviour
 
     public static void Spawn(Vector3 pos, Vector2 dir)
     {
-        var go = Bootstrap.NewObject("Spark");
+        var go = Bootstrap.NewObject("Faisca");
         go.transform.position = pos;
-        go.transform.localScale = Vector3.one * 0.3f;
 
         var sr = go.AddComponent<SpriteRenderer>();
-        sr.sprite = SpriteFactory.Circle(Color.white);
-        sr.color = new Color(1f, 0.85f, 0.4f);
-        sr.sortingOrder = 3;
+        sr.sortingOrder = Fx.Order - 1;
+        SpriteFactory.UseUnlit(sr);
+        go.AddComponent<SpriteAnimator>().Play("itens/faisca");
 
         var rb = go.AddComponent<Rigidbody2D>();
         rb.bodyType = RigidbodyType2D.Kinematic;
@@ -28,7 +27,7 @@ public class Projectile : MonoBehaviour
 
         var col = go.AddComponent<CircleCollider2D>();
         col.isTrigger = true;
-        col.radius = 0.5f;
+        col.radius = 0.18f;
 
         go.AddComponent<Projectile>();
     }
@@ -57,7 +56,7 @@ public class Projectile : MonoBehaviour
     void Explode()
     {
         done = true;
-        Fx.Burst(transform.position, new Color(1f, 0.8f, 0.3f, 0.7f), 0.8f);
+        Fx.Play("itens/impacto", transform.position);
         Destroy(gameObject);
     }
 }
