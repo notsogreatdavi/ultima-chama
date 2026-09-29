@@ -24,3 +24,6 @@
 # Ferramentas locais
 CLAUDE.md
 .claude/
+
+# Python
+__pycache__/
