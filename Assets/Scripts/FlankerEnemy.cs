@@ -40,7 +40,7 @@ public class FlankerEnemy : Enemy
             lungeDir = toPlayer.normalized;
             lungeTimer = LungeTime;
             lungeCd = LungeCooldown;
-            anim.Play("breus/cacadora_lunge", false, true);
+            PlayAnim("_lunge", false, true);
         }
     }
 

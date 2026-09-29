@@ -15,6 +15,8 @@ public abstract class Enemy : MonoBehaviour
     protected PlayerController player;
     protected Rigidbody2D rb;
     protected SpriteAnimator anim;
+    SpriteAnimator eyes;
+    SpriteRenderer eyesSr;
     protected float boost = 1f;
     SpriteRenderer sr;
     Vector2 knockback;
@@ -65,11 +67,28 @@ public abstract class Enemy : MonoBehaviour
         rb = GetComponent<Rigidbody2D>();
         sr = GetComponent<SpriteRenderer>();
         anim = GetComponent<SpriteAnimator>();
+
+        // Olhos em uma camada própria, acima da escuridão: brilham no escuro.
+        var eyesGo = new GameObject("Olhos");
+        eyesGo.transform.SetParent(transform, false);
+        eyesSr = eyesGo.AddComponent<SpriteRenderer>();
+        eyesSr.sortingOrder = Bootstrap.GlowOrder;
+        SpriteFactory.UseUnlit(eyesSr);
+        eyes = eyesGo.AddComponent<SpriteAnimator>();
     }
 
     protected virtual void Start()
     {
-        anim.Play("breus/" + Variant + "_float");
+        PlayAnim("_float", true, false);
+    }
+
+    // Toca o clipe do corpo e o dos olhos juntos (ex.: "_float", "_hurt").
+    protected void PlayAnim(string suffix, bool loop, bool restart)
+    {
+        string key = "breus/" + Variant + suffix;
+        if (!restart && anim.Current == key) return;
+        anim.Play(key, loop, restart);
+        eyes.Play(key + "_olhos", loop, true);
     }
 
     void OnEnable() { All.Add(this); }
@@ -79,8 +98,9 @@ public abstract class Enemy : MonoBehaviour
     {
         if (dead) return;
         hurtTimer -= Time.deltaTime;
-        if (hurtTimer <= 0f && !Busy) anim.Play("breus/" + Variant + "_float");
+        if (hurtTimer <= 0f && !Busy) PlayAnim("_float", true, false);
         if (player != null) sr.flipX = player.transform.position.x < transform.position.x;
+        eyesSr.flipX = sr.flipX;
     }
 
     void FixedUpdate()
@@ -132,7 +152,7 @@ public abstract class Enemy : MonoBehaviour
         if (dead) return;
         hp -= damage;
         hurtTimer = 0.17f;
-        anim.Play("breus/" + Variant + "_hurt", false, true);
+        PlayAnim("_hurt", false, true);
         if (player != null) Knockback(((Vector2)(Body - player.Body)).normalized * 5f);
         if (hp <= 0) Die();
     }
@@ -148,7 +168,7 @@ public abstract class Enemy : MonoBehaviour
         rb.simulated = false;
 
         string key = "breus/" + Variant + "_dissolve";
-        anim.Play(key, false, true);
+        PlayAnim("_dissolve", false, true);
         CameraFollow.Instance?.Shake(0.08f);
         GameManager.Instance.OnEnemyKilled(scoreValue);
 

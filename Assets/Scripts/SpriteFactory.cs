@@ -114,14 +114,15 @@ public static class SpriteFactory
         return sprite;
     }
 
-    // Escuridão em faixas com um buraco de luz no centro. Cobre 60 unidades.
+    // Escuridão em faixas (sem gradiente suave) com um buraco de luz no centro.
+    // Cobre 60 unidades; com escala 1 a luz limpa vai até ~4,2 unidades.
     public static Sprite Darkness()
     {
-        const int size = 256;
+        const int size = 512;
         return Make("darkness", size, size / 60f, (x, y) =>
         {
             float d = Mathf.Sqrt(x * x + y * y);
-            float a = d < 0.1f ? 0f : d < 0.14f ? 0.38f : d < 0.18f ? 0.62f : 0.9f;
+            float a = d < 0.14f ? 0f : d < 0.19f ? 0.35f : d < 0.24f ? 0.6f : d < 0.3f ? 0.78f : 0.9f;
             return new Color(0.055f, 0.043f, 0.086f, a);
         });
     }

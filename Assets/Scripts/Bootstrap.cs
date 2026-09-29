@@ -4,8 +4,13 @@ using UnityEngine.Rendering.Universal;
 // Monta o jogo inteiro por código ao carregar a cena. A cena pode estar vazia.
 public static class Bootstrap
 {
-    // Plano B: false volta para a escuridão por sprite (sem luz 2D).
-    public const bool UseLights = true;
+    // true: luz 2D do URP (funciona no editor, mas o build WebGL perde a iluminação).
+    // false: escuridão em faixas desenhada por cima do jogo, igual em qualquer plataforma.
+    public const bool UseLights = false;
+
+    // Ordem de desenho da escuridão; o que brilha fica acima dela.
+    public const int DarknessOrder = 2990;
+    public const int GlowOrder = 2995;
 
     public static Transform Root { get; private set; }
 

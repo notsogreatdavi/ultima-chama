@@ -20,7 +20,7 @@ public class Pickup : MonoBehaviour
 
         var sr = go.AddComponent<SpriteRenderer>();
         SpriteFactory.UseUnlit(sr);
-        go.AddComponent<YSort>();
+        go.AddComponent<YSort>().baseOrder = Bootstrap.GlowOrder + 1000;
         go.AddComponent<SpriteAnimator>().Play(kind == Kind.Lumen ? "itens/lumen" : "itens/vela");
 
         var col = go.AddComponent<CircleCollider2D>();

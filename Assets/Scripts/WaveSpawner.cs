@@ -48,7 +48,7 @@ public class WaveSpawner : MonoBehaviour
     {
         pending++;
         Vector3 pos = PickSpawnPoint();
-        Fx.Play("itens/surgimento", pos, 1f, true, -70);
+        Fx.Play("itens/surgimento", pos, 1f, true, Bootstrap.GlowOrder);
         yield return new WaitForSeconds(SpriteFactory.Duration("itens/surgimento"));
         pending--;
         if (!player.Alive) yield break;

@@ -90,6 +90,7 @@ public class ArenaBuilder : MonoBehaviour
             else if (r > 0.985 && candles < 6)
             {
                 var go = Decor("vela_chao", c, true);
+                go.GetComponent<SpriteRenderer>().sortingOrder = Bootstrap.GlowOrder;
                 LightRig.AddGlow(go.transform, new Color(1f, 0.65f, 0.3f), 2.2f, 0.7f);
                 candles++;
             }

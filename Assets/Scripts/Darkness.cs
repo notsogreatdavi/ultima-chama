@@ -11,7 +11,7 @@ public class Darkness : MonoBehaviour
         var go = Bootstrap.NewObject("Darkness");
         var sr = go.AddComponent<SpriteRenderer>();
         sr.sprite = SpriteFactory.Darkness();
-        sr.sortingOrder = Fx.Order - 10;
+        sr.sortingOrder = Bootstrap.DarknessOrder;
         go.AddComponent<Darkness>().player = player;
     }
 
