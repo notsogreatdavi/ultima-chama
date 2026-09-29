@@ -161,7 +161,17 @@
    "fps": 8
   },
   {
+   "key": "breus/comum_float_olhos",
+   "frames": 6,
+   "fps": 8
+  },
+  {
    "key": "breus/comum_hurt",
+   "frames": 2,
+   "fps": 12
+  },
+  {
+   "key": "breus/comum_hurt_olhos",
    "frames": 2,
    "fps": 12
   },
@@ -171,7 +181,17 @@
    "fps": 12
   },
   {
+   "key": "breus/comum_dissolve_olhos",
+   "frames": 8,
+   "fps": 12
+  },
+  {
    "key": "breus/cacadora_float",
+   "frames": 6,
+   "fps": 8
+  },
+  {
+   "key": "breus/cacadora_float_olhos",
    "frames": 6,
    "fps": 8
   },
@@ -181,7 +201,17 @@
    "fps": 12
   },
   {
+   "key": "breus/cacadora_hurt_olhos",
+   "frames": 2,
+   "fps": 12
+  },
+  {
    "key": "breus/cacadora_dissolve",
+   "frames": 8,
+   "fps": 12
+  },
+  {
+   "key": "breus/cacadora_dissolve_olhos",
    "frames": 8,
    "fps": 12
   },
@@ -191,7 +221,17 @@
    "fps": 8
   },
   {
+   "key": "breus/brutamontes_float_olhos",
+   "frames": 6,
+   "fps": 8
+  },
+  {
    "key": "breus/brutamontes_hurt",
+   "frames": 2,
+   "fps": 12
+  },
+  {
+   "key": "breus/brutamontes_hurt_olhos",
    "frames": 2,
    "fps": 12
   },
@@ -201,7 +241,17 @@
    "fps": 12
   },
   {
+   "key": "breus/brutamontes_dissolve_olhos",
+   "frames": 10,
+   "fps": 12
+  },
+  {
    "key": "breus/cacadora_lunge",
+   "frames": 4,
+   "fps": 12
+  },
+  {
+   "key": "breus/cacadora_lunge_olhos",
    "frames": 4,
    "fps": 12
   },

@@ -55,6 +55,21 @@ def export_unity(out):
             for i, f in enumerate(frames):
                 f.image().save(d / f'{i:02d}.png')
             meta.append({'key': f'{group}/{name}', 'frames': len(frames), 'fps': fps_for(name)})
+            if group == 'breus':
+                # só os olhos, desenhados por cima da escuridão para brilhar no escuro
+                d = out / group / (name + '_olhos')
+                d.mkdir(parents=True, exist_ok=True)
+                for old in d.glob('*.png'):
+                    old.unlink()
+                for i, f in enumerate(frames):
+                    eyes = Canvas(f.w, f.h)
+                    for y in range(f.h):
+                        for x in range(f.w):
+                            c = f.px[y][x]
+                            if c in ('eye0', 'eye1') or (isinstance(c, tuple) and c[:3] == (127, 245, 232)):
+                                eyes.set(x, y, c)
+                    eyes.image().save(d / f'{i:02d}.png')
+                meta.append({'key': f'{group}/{name}_olhos', 'frames': len(frames), 'fps': fps_for(name)})
     for sub, pieces in (('tiles', tiles.build()), ('ui', ui.build())):
         d = out / sub
         d.mkdir(parents=True, exist_ok=True)
