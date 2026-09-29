@@ -1,12 +1,12 @@
 using UnityEngine;
 
-// Itens coletáveis. Gemas somem rápido: o jogador arrisca se aproximar das sombras para pegá-las.
+// Itens coletáveis. Lumens somem rápido: o jogador arrisca se aproximar dos Breus para pegá-los.
 public class Pickup : MonoBehaviour
 {
-    public enum Kind { Gem, Heart }
+    public enum Kind { Lumen, Vela }
 
-    const float GemLifetime = 6f;
-    const float HeartLifetime = 9f;
+    const float LumenLifetime = 6f;
+    const float VelaLifetime = 9f;
 
     Kind kind;
     float life, maxLife;
@@ -19,24 +19,30 @@ public class Pickup : MonoBehaviour
         go.transform.position = pos;
 
         var sr = go.AddComponent<SpriteRenderer>();
-        sr.sprite = kind == Kind.Gem ? SpriteFactory.Gem() : SpriteFactory.Heart();
-        sr.sortingOrder = 0;
+        SpriteFactory.UseUnlit(sr);
+        go.AddComponent<YSort>();
+        go.AddComponent<SpriteAnimator>().Play(kind == Kind.Lumen ? "itens/lumen" : "itens/vela");
 
         var col = go.AddComponent<CircleCollider2D>();
         col.isTrigger = true;
         col.radius = 0.45f;
 
+        if (kind == Kind.Lumen)
+            LightRig.AddGlow(go.transform, new Color(0.25f, 0.9f, 1f), 1.4f, 0.6f);
+        else
+            LightRig.AddGlow(go.transform, new Color(1f, 0.7f, 0.35f), 2f, 0.8f);
+
         var p = go.AddComponent<Pickup>();
         p.kind = kind;
         p.sr = sr;
         p.basePos = pos;
-        p.maxLife = kind == Kind.Gem ? GemLifetime : HeartLifetime;
+        p.maxLife = kind == Kind.Lumen ? LumenLifetime : VelaLifetime;
     }
 
     void Update()
     {
         life += Time.deltaTime;
-        transform.position = basePos + Vector3.up * Mathf.Sin(life * 5f) * 0.08f;
+        transform.position = basePos + Vector3.up * (Mathf.Round(Mathf.Sin(life * 5f) * 1.5f) / 16f);
 
         // Pisca nos últimos 2 segundos avisando que vai sumir.
         float left = maxLife - life;
@@ -49,15 +55,16 @@ public class Pickup : MonoBehaviour
         var player = other.GetComponent<PlayerController>();
         if (player == null || !player.Alive) return;
 
-        if (kind == Kind.Gem)
+        if (kind == Kind.Lumen)
         {
             GameManager.Instance.OnGemCollected(transform.position);
-            Fx.Burst(transform.position, new Color(0.3f, 0.9f, 1f, 0.7f), 1f);
+            player.Happy();
+            Fx.Play("itens/impacto", transform.position);
         }
         else
         {
             player.Heal();
-            GameManager.Instance.Banner("+1 VIDA");
+            GameManager.Instance.Banner("+1 CHAMA");
         }
         Destroy(gameObject);
     }

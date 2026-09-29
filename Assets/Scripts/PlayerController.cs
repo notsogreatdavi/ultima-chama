@@ -1,6 +1,7 @@
 using UnityEngine;
 
-// A chama: move, atira, dá dash e solta a Nova (ação especial que custa vida).
+// Pavio, a chaminha: move, solta Faísca, dá Sopro (dash) e Labareda (custa vida).
+// Escolhe a animação e a expressão do rosto conforme o que acontece.
 public class PlayerController : MonoBehaviour
 {
     public const int MaxHp = 5;
@@ -14,10 +15,15 @@ public class PlayerController : MonoBehaviour
     public float novaCooldown = 3f;
     public float invulnTime = 1.1f;
 
+    // Centro do corpo da chama em relação ao pivô do sprite.
+    public static readonly Vector3 BodyOffset = new Vector3(0f, -0.3f, 0f);
+
     public int Hp { get; private set; } = MaxHp;
     public bool Alive => Hp > 0;
     public float NovaCooldownLeft => novaTimer;
     public bool CanNova => Alive && Hp > 1 && novaTimer <= 0f;
+    public float SoproPronto01 => 1f - Mathf.Clamp01(dashCdTimer / dashCooldown);
+    public Vector3 Body => transform.position + BodyOffset;
 
     Rigidbody2D rb;
     SpriteRenderer sr;
@@ -26,16 +32,20 @@ public class PlayerController : MonoBehaviour
 
     Vector2 moveInput;
     Vector2 dashDir;
+    Vector2 facing = Vector2.right;
     float fireTimer, dashTimer, dashCdTimer, novaTimer, invulnTimer;
+    float hurtFace, angryFace, happyFace, blinkTimer, shootAnim, squash;
+    float nextBlink = 3f;
 
     public static PlayerController Create(Vector3 pos)
     {
-        var go = Bootstrap.NewObject("Player");
+        var go = Bootstrap.NewObject("Pavio");
         go.transform.position = pos;
 
         var sr = go.AddComponent<SpriteRenderer>();
-        sr.sortingOrder = 2;
-        go.AddComponent<SpriteAnimator>().fps = 10f;
+        SpriteFactory.UseUnlit(sr);
+        go.AddComponent<YSort>().offset = BodyOffset.y;
+        go.AddComponent<SpriteAnimator>();
 
         var rb = go.AddComponent<Rigidbody2D>();
         rb.gravityScale = 0f;
@@ -43,7 +53,9 @@ public class PlayerController : MonoBehaviour
         rb.interpolation = RigidbodyInterpolation2D.Interpolate;
         rb.collisionDetectionMode = CollisionDetectionMode2D.Continuous;
 
-        go.AddComponent<CircleCollider2D>().radius = 0.35f;
+        var col = go.AddComponent<CircleCollider2D>();
+        col.radius = 0.4f;
+        col.offset = BodyOffset;
         return go.AddComponent<PlayerController>();
     }
 
@@ -53,46 +65,98 @@ public class PlayerController : MonoBehaviour
         sr = GetComponent<SpriteRenderer>();
         anim = GetComponent<SpriteAnimator>();
         cam = Camera.main;
-        anim.Play(SpriteFactory.Flame(false));
+        anim.Play("pavio/idle_normal");
     }
 
     void Update()
     {
+        if (!Alive) return;
+
         var gm = GameManager.Instance;
-        if (!Alive || gm == null || gm.State != GameState.Playing)
+        bool playing = gm != null && gm.State == GameState.Playing;
+        float dt = Time.deltaTime;
+
+        fireTimer -= dt;
+        dashTimer -= dt;
+        dashCdTimer -= dt;
+        novaTimer -= dt;
+        invulnTimer -= dt;
+        hurtFace -= dt;
+        angryFace -= dt;
+        happyFace -= dt;
+        shootAnim -= dt;
+        blinkTimer -= dt;
+        nextBlink -= dt;
+        if (nextBlink <= 0f)
         {
-            moveInput = Vector2.zero;
-            return;
+            blinkTimer = 0.15f;
+            nextBlink = Random.Range(3f, 5f);
         }
 
-        moveInput = Inp.Move();
-        anim.Play(SpriteFactory.Flame(moveInput.sqrMagnitude > 0.01f));
+        moveInput = playing ? Inp.Move() : Vector2.zero;
 
-        fireTimer -= Time.deltaTime;
-        dashTimer -= Time.deltaTime;
-        dashCdTimer -= Time.deltaTime;
-        novaTimer -= Time.deltaTime;
-        invulnTimer -= Time.deltaTime;
-
-        Vector2 aim = (Vector2)(Inp.MouseWorld(cam) - transform.position);
-        if (aim.sqrMagnitude < 0.01f) aim = Vector2.up;
+        Vector2 aim = (Vector2)(Inp.MouseWorld(cam) - Body);
+        if (aim.sqrMagnitude < 0.01f) aim = facing;
         aim.Normalize();
 
-        if (Inp.Fire() && fireTimer <= 0f)
+        if (playing)
         {
-            fireTimer = fireRate;
-            Projectile.Spawn(transform.position + (Vector3)(aim * 0.5f), aim);
+            if (Inp.Fire() && fireTimer <= 0f)
+            {
+                fireTimer = fireRate;
+                shootAnim = 0.12f;
+                angryFace = 0.25f;
+                squash = 0.18f;
+                Projectile.Spawn(Body + (Vector3)(aim * 0.5f), aim);
+            }
+
+            if (Inp.Dash() && dashCdTimer <= 0f)
+            {
+                dashDir = moveInput.sqrMagnitude > 0.01f ? moveInput.normalized : aim;
+                dashTimer = dashTime;
+                dashCdTimer = dashCooldown;
+                angryFace = 0.25f;
+                Fx.Play("itens/fumaca", transform.position + new Vector3(0f, -0.6f, 0f), 1f, false, 500);
+            }
+
+            if (Inp.Nova()) TryNova();
         }
 
-        if (Inp.Dash() && dashCdTimer <= 0f)
-        {
-            dashDir = moveInput.sqrMagnitude > 0.01f ? moveInput.normalized : aim;
-            dashTimer = dashTime;
-            dashCdTimer = dashCooldown;
-            Fx.Burst(transform.position, new Color(1f, 0.6f, 0.2f, 0.6f), 1.2f);
-        }
+        if (moveInput.sqrMagnitude > 0.01f) facing = moveInput;
+        else if (dashTimer <= 0f) facing = aim;
+        if (dashTimer > 0f) facing = dashDir;
 
-        if (Inp.Nova()) TryNova();
+        UpdateVisual();
+    }
+
+    string Expression()
+    {
+        if (hurtFace > 0f) return "dano";
+        if (angryFace > 0f) return "bravo";
+        if (happyFace > 0f) return "feliz";
+        if (Hp == 1) return "medo";
+        if (blinkTimer > 0f) return "piscando";
+        return "normal";
+    }
+
+    void UpdateVisual()
+    {
+        var gm = GameManager.Instance;
+        string prefix = gm != null && gm.Multiplier >= 4 ? "azul_" : "";
+        string key;
+        if (hurtFace > 0.1f) key = "hurt";
+        else if (dashTimer > 0f) key = "dash";
+        else if (shootAnim > 0f) key = "shoot";
+        else if (moveInput.sqrMagnitude > 0.01f) key = "run_" + Expression();
+        else key = "idle_" + Expression();
+        anim.Play("pavio/" + prefix + key, true, false, true);
+
+        // Sprites desenhados virados para a direita.
+        if (Mathf.Abs(facing.x) > 0.05f) sr.flipX = facing.x < 0f;
+
+        // Achatar e voltar esticando (squash and stretch).
+        squash = Mathf.MoveTowards(squash, 0f, Time.deltaTime * 1.2f);
+        transform.localScale = new Vector3(1f + squash, 1f - squash, 1f);
 
         // Pisca durante a invulnerabilidade.
         sr.enabled = invulnTimer <= 0f || Mathf.Repeat(Time.time * 12f, 1f) > 0.4f;
@@ -108,7 +172,7 @@ public class PlayerController : MonoBehaviour
         rb.SetVelocity(dashTimer > 0f ? dashDir * dashSpeed : moveInput * speed);
     }
 
-    // Ação especial: elimina todas as sombras no raio, mas consome 1 de vida (e a luz diminui).
+    // Labareda: elimina os Breus no raio, mas consome 1 chama (e a luz diminui).
     void TryNova()
     {
         if (!CanNova) return;
@@ -116,20 +180,22 @@ public class PlayerController : MonoBehaviour
         Hp--;
         novaTimer = novaCooldown;
         invulnTimer = 0.5f;
+        angryFace = 0.5f;
+        squash = -0.25f;
 
         int killed = 0;
         for (int i = Enemy.All.Count - 1; i >= 0; i--)
         {
             var e = Enemy.All[i];
-            if (Vector2.Distance(e.transform.position, transform.position) <= novaRadius)
+            if (Vector2.Distance(e.transform.position, Body) <= novaRadius)
             {
                 e.Die();
                 killed++;
             }
         }
 
-        Fx.Ring(transform.position, new Color(1f, 0.7f, 0.2f), novaRadius);
-        Fx.Burst(transform.position, new Color(1f, 0.9f, 0.5f, 0.8f), novaRadius);
+        // O anel do sprite chega a ~2,9 unidades de raio; escala até o raio real.
+        Fx.Play("itens/labareda", Body, novaRadius / 2.9f);
         CameraFollow.Instance?.Shake(0.45f);
         GameManager.Instance.OnNova(killed);
     }
@@ -137,28 +203,35 @@ public class PlayerController : MonoBehaviour
     public void Heal()
     {
         Hp = Mathf.Min(MaxHp, Hp + 1);
-        Fx.Burst(transform.position, new Color(1f, 0.3f, 0.4f, 0.7f), 2f);
+        happyFace = 0.8f;
+        Fx.Play("itens/impacto", Body, 1.5f);
+    }
+
+    public void Happy()
+    {
+        happyFace = 0.6f;
     }
 
     void OnCollisionStay2D(Collision2D c)
     {
-        if (c.collider.GetComponent<Enemy>() != null) TakeHit(c.transform.position);
+        if (c.collider.GetComponent<Enemy>() != null) TakeHit();
     }
 
-    void TakeHit(Vector3 from)
+    void TakeHit()
     {
         if (!Alive || invulnTimer > 0f || dashTimer > 0f) return;
         if (GameManager.Instance.State != GameState.Playing) return;
 
         Hp--;
         invulnTimer = invulnTime;
+        hurtFace = 0.3f;
         CameraFollow.Instance?.Shake(0.35f);
-        Fx.Burst(transform.position, new Color(1f, 0.2f, 0.2f, 0.8f), 2f);
+        Fx.Play("itens/impacto", Body, 2f);
 
-        // Empurra as sombras próximas para dar espaço de fuga.
+        // Empurra os Breus próximos para dar espaço de fuga.
         foreach (var e in Enemy.All)
         {
-            Vector2 away = e.transform.position - transform.position;
+            Vector2 away = e.transform.position - Body;
             if (away.magnitude < 2.5f) e.Knockback(away.normalized * 8f);
         }
 
@@ -166,9 +239,11 @@ public class PlayerController : MonoBehaviour
 
         if (Hp <= 0)
         {
-            sr.enabled = false;
+            sr.enabled = true;
+            transform.localScale = Vector3.one;
             GetComponent<Collider2D>().enabled = false;
-            Fx.Burst(transform.position, new Color(1f, 0.6f, 0.1f), 4f);
+            anim.Play("pavio/death", false, true);
+            Fx.Play("itens/fumaca", Body + Vector3.up * 0.5f, 1.5f, false);
             GameManager.Instance.OnPlayerDied();
         }
     }
