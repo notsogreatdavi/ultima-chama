@@ -73,16 +73,16 @@ public static class UiKit
     }
 
     // title: Silkscreen (títulos, números, HUD). Senão Pixelify Sans (textos).
-    public static GUIStyle Text(int size, Color color, TextAnchor align = TextAnchor.UpperLeft, bool title = false, bool bold = false)
+    public static GUIStyle Text(int size, Color color, TextAnchor align = TextAnchor.UpperLeft, bool title = false, bool bold = false, bool wrap = true)
     {
-        string key = size + "|" + color + "|" + align + "|" + title + "|" + bold;
+        string key = size + "|" + color + "|" + align + "|" + title + "|" + bold + "|" + wrap;
         if (textStyles.TryGetValue(key, out GUIStyle s)) return s;
         s = new GUIStyle
         {
             font = title ? (bold ? silkBold : silk) : pixelify,
             fontSize = size * U,
             alignment = align,
-            wordWrap = !title,
+            wordWrap = wrap && !title,
             clipping = TextClipping.Overflow,
         };
         s.normal.textColor = color;

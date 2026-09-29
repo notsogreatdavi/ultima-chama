@@ -258,7 +258,7 @@ public class GameManager : MonoBehaviour
         // Teclas.
         float x = 16 * u;
         float y = h - 22 * u;
-        var labelStyle = UiKit.Text(7, UiKit.Muted, TextAnchor.MiddleLeft);
+        var labelStyle = UiKit.Text(7, UiKit.Muted, TextAnchor.MiddleLeft, false, false, false);
         foreach (var k in Keys)
         {
             float kw = Mathf.Max(18 * u, UiKit.Key.CalcSize(new GUIContent(k.key)).x + 6 * u);
